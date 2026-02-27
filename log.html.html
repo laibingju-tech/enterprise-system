@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程施工日誌生成器</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root { --primary-color: #2980b9; --secondary-color: #2c3e50; --bg-color: #ecf0f1; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; gap: 20px; justify-content: center; min-height: 100vh; box-sizing: border-box; }
+        
+        /* 左側操作區 */
+        .controls { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 320px; height: fit-content; }
+        .controls h2 { color: var(--secondary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-top: 0; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        
+        .file-upload { border: 2px dashed #bdc3c7; padding: 15px; text-align: center; cursor: pointer; border-radius: 5px; margin-bottom: 5px; background: #f9f9f9; transition: 0.3s; }
+        .file-upload:hover { background: #eef2f3; border-color: var(--primary-color); }
+        
+        button { background-color: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; margin-top: 10px; }
+        button:hover { background-color: #3498db; }
+        .btn-download { background-color: #27ae60; margin-top: 20px; }
+        .btn-download:hover { background-color: #2ecc71; }
+
+        /* 右側預覽區 (A4 樣式) */
+        .preview-area { flex: 1; display: flex; justify-content: center; background: #95a5a6; padding: 20px; border-radius: 8px; overflow-y: auto; }
+        #log-paper {
+            background: white; width: 210mm; min-height: 297mm; padding: 15mm; box-shadow: 0 0 15px rgba(0,0,0,0.2); box-sizing: border-box; position: relative;
+            display: flex; flex-direction: column;
+        }
+
+        /* 日誌內容樣式 */
+        .header { text-align: center; border-bottom: 3px double var(--secondary-color); padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { margin: 0; color: var(--secondary-color); font-size: 28px; }
+        .header h3 { margin: 5px 0; color: var(--primary-color); font-size: 20px; }
+        .header p { margin: 5px 0; font-size: 12px; color: #7f8c8d; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; border: 1px solid #bdc3c7; padding: 15px; border-radius: 5px; background: #fdfdfd; }
+        .info-item strong { display: block; color: var(--secondary-color); font-size: 14px; margin-bottom: 3px; }
+        .info-item span { color: #333; font-size: 16px; border-bottom: 1px solid #eee; display: block; padding-bottom: 2px; }
+
+        .photo-section { display: flex; flex-direction: column; gap: 20px; flex: 1; }
+        .photo-box { border: 1px solid #bdc3c7; padding: 10px; border-radius: 5px; background: #fff; }
+        .photo-title { background: var(--secondary-color); color: white; padding: 5px 10px; display: inline-block; border-radius: 3px; font-size: 14px; margin-bottom: 10px; }
+        .photo-frame { width: 100%; height: 300px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #eee; }
+        .photo-frame img { width: 100%; height: 100%; object-fit: contain; }
+        .photo-placeholder { color: #bdc3c7; font-size: 14px; }
+
+        .footer { margin-top: auto; border-top: 1px solid #bdc3c7; padding-top: 15px; display: flex; justify-content: space-between; font-size: 14px; color: #333; }
+        .sign-area { text-align: center; }
+        .sign-line { border-bottom: 1px solid #333; width: 150px; display: inline-block; margin-top: 30px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h2>🏗️ 施工日誌設定</h2>
+        
+        <div class="input-group">
+            <label>承攬廠商</label>
+            <select id="companySelect" onchange="updateView()">
+                <option value="千弘">千弘科技股份有限公司</option>
+                <option value="互愛">互愛企業行</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>案場名稱 (學校)</label>
+            <input type="text" id="siteName" placeholder="例如：鑄強國小" oninput="updateView()">
+        </div>
+
+        <div class="input-group">
+            <label>施工項目 / 內容</label>
+            <input type="text" id="workContent" placeholder="例如：更換攀爬架安全地墊" oninput="updateView()">
+        </div>
+
+        <div class="input-group">
+            <label>施工人員</label>
+            <input type="text" id="workerName" placeholder="例如：工務組" oninput="updateView()">
+        </div>
+
+        <hr>
+        
+        <div class="input-group">
+            <label>📸 施工前照片 (Before)</label>
+            <div class="file-upload" onclick="document.getElementById('imgInput1').click()">
+                點此上傳「施工前」照片
+            </div>
+            <input type="file" id="imgInput1" accept="image/*" style="display:none" onchange="loadImg(event, 'preview1')">
+        </div>
+
+        <div class="input-group">
+            <label>✨ 完工後照片 (After)</label>
+            <div class="file-upload" onclick="document.getElementById('imgInput2').click()">
+                點此上傳「完工後」照片
+            </div>
+            <input type="file" id="imgInput2" accept="image/*" style="display:none" onchange="loadImg(event, 'preview2')">
+        </div>
+
+        <button class="btn-download" onclick="downloadImage()">📥 下載施工日誌 (圖片)</button>
+    </div>
+
+    <div class="preview-area">
+        <div id="log-paper">
+            <div class="header">
+                <h1 id="comName">千弘科技股份有限公司</h1>
+                <p id="comDetail">台北市大同區重慶北路2段35號3F之2 ｜ TEL: 02-25527215</p>
+                <h3>工程施工日誌 / 驗收報告</h3>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>案場名稱：</strong>
+                    <span id="displaySite">尚未輸入</span>
+                </div>
+                <div class="info-item">
+                    <strong>施工日期：</strong>
+                    <span id="displayDate"></span>
+                </div>
+                <div class="info-item" style="grid-column: span 2;">
+                    <strong>施工項目：</strong>
+                    <span id="displayContent">尚未輸入</span>
+                </div>
+            </div>
+
+            <div class="photo-section">
+                <div class="photo-box">
+                    <div class="photo-title" style="background: #e67e22;">施工前 (Before)</div>
+                    <div class="photo-frame">
+                        <img id="preview1" src="" style="display:none">
+                        <span class="photo-placeholder" id="ph1">尚未上傳照片</span>
+                    </div>
+                </div>
+
+                <div class="photo-box">
+                    <div class="photo-title" style="background: #27ae60;">完工後 (After)</div>
+                    <div class="photo-frame">
+                        <img id="preview2" src="" style="display:none">
+                        <span class="photo-placeholder" id="ph2">尚未上傳照片</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div>
+                    <strong>備註事項：</strong><br>
+                    本工程已按圖施工完畢，並經測試確認安全無虞。
+                </div>
+                <div class="sign-area">
+                    <strong>施工人員簽章：</strong><br>
+                    <span id="displayWorker" style="font-size: 16px; font-family: 'Kaushan Script', cursive;"></span><br>
+                    <span class="sign-line"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化日期
+        document.getElementById('displayDate').innerText = new Date().toLocaleDateString('zh-TW');
+
+        // 公司資料庫
+        const companies = {
+            "千弘": {
+                name: "千弘科技股份有限公司",
+                detail: "台北市大同區重慶北路2段35號3F之2 ｜ TEL: 02-25527215"
+            },
+            "互愛": {
+                name: "互愛企業行",
+                detail: "花蓮市中強街102號1F ｜ TEL: 03-8312980"
+            }
+        };
+
+        function updateView() {
+            // 更新文字
+            document.getElementById('displaySite').innerText = document.getElementById('siteName').value || '尚未輸入';
+            document.getElementById('displayContent').innerText = document.getElementById('workContent').value || '尚未輸入';
+            document.getElementById('displayWorker').innerText = document.getElementById('workerName').value;
+
+            // 更新公司抬頭
+            const selected = document.getElementById('companySelect').value;
+            document.getElementById('comName').innerText = companies[selected].name;
+            document.getElementById('comDetail').innerText = companies[selected].detail;
+        }
+
+        function loadImg(event, previewId) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(previewId);
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    // 隱藏提示文字
+                    if(previewId === 'preview1') document.getElementById('ph1').style.display = 'none';
+                    if(previewId === 'preview2') document.getElementById('ph2').style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function downloadImage() {
+            const element = document.getElementById("log-paper");
+            const originalShadow = element.style.boxShadow;
+            element.style.boxShadow = 'none'; // 去除陰影
+
+            html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                const site = document.getElementById('siteName').value || '案場';
+                const date = new Date().toISOString().slice(0,10);
+                link.download = `施工日誌_${site}_${date}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                element.style.boxShadow = originalShadow; // 恢復陰影
+            });
+        }
+    </script>
+</body>
+</html>
