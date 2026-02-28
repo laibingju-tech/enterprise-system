@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>千弘/互愛 企業內部系統入口</title>
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #e67e22; --bg-color: #f4f7f6; }
+        body { 
+            font-family: "Microsoft JhengHei", sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .header {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: var(--primary-color);
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            margin: 0;
+            font-size: 1.1em;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-top: 5px solid var(--primary-color);
+            display: block;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .tool-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .tool-title {
+            color: var(--primary-color);
+            font-size: 1.5em;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+
+        .tool-desc {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* 個別卡片的顏色點綴 */
+        .card-quote { border-top-color: #e67e22; }
+        .card-log { border-top-color: #27ae60; }
+        .card-dashboard { border-top-color: #8e44ad; } /* 新增了尊貴的紫色系 */
+
+        .footer {
+            margin-top: auto;
+            padding-top: 40px;
+            color: #bdc3c7;
+            font-size: 0.8em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>企業內部數位工具網</h1>
+        <p>千弘科技股份有限公司 ｜ 互愛企業行</p>
+    </div>
+
+    <div class="tools-grid">
+        <a href="quote.html" class="tool-card card-quote">
+            <div class="tool-icon">💰</div>
+            <h2 class="tool-title">自動報價系統</h2>
+            <p class="tool-desc">雙品牌一鍵切換，自動計算稅金與小計，快速產出專業報價單圖檔。</p>
+        </a>
+
+        <a href="log.html" class="tool-card card-log">
+            <div class="tool-icon">🏗️</div>
+            <h2 class="tool-title">施工驗收日誌</h2>
+            <p class="tool-desc">現場即時上傳施工前後對比照，自動生成符合請款規格的 A4 驗收報告。</p>
+        </a>
+
+        <a href="dashboard.html" class="tool-card card-dashboard">
+            <div class="tool-icon">🧮</div>
+            <h2 class="tool-title">兵馬糧草儀表板</h2>
+            <p class="tool-desc">「兵馬未動，糧草先行」。掌握專案進度與全通路帳款催收的戰情樞紐。</p>
+        </a>
+    </div>
+
+    <div class="footer">
+        © 2026 千弘/互愛 數位轉型計畫專案. All rights reserved.
+    </div>
+
+</body>
+</html>
